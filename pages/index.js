@@ -1,12 +1,10 @@
-import Link from "next/link";
+import React, { Component } from "react";
+import Items from "../components/items";
 
-const Home = props => (
-  <div>
-    <h2>home</h2>
-    <Link href="/sell">
-      <a>sell</a>
-    </Link>
-  </div>
-);
+class Index extends Component {
+  render() {
+    return <Items />;
+  }
+}
 
-export default Home;
+export default Index;
