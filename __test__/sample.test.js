@@ -15,7 +15,7 @@ describe('<Item/>', () => {
   it('renders and matches the snapshot', () => {
     const wrapper = shallow(<ItemComponent item={fakeItem} />);
     const buttonList = wrapper.find('.buttonList');
-    console.log(buttonList.debug())
+    console.log(buttonList,'000')
     // expect(toJSON(wrapper)).toMatchSnapshot();
   });
 

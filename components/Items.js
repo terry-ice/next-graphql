@@ -1,13 +1,13 @@
-import React, { Component } from 'react'
+import React, { Component } from "react";
 import { Query } from "react-apollo";
 import gql from "graphql-tag";
 import styled from "styled-components";
 import Item from "./item";
-
+import Pagination from "./Pagination";
 
 const ALL_ITEMS_QUERY = gql`
-  query ALL_ITEMS_QUERY{
-    items{
+  query ALL_ITEMS_QUERY {
+    items {
       id
       title
       price
@@ -26,25 +26,30 @@ const ItemList = styled.div`
   grid-gap: 60px;
   max-width: ${props => props.theme.maxWidth};
   margin: 0;
-
 `;
 
 class Items extends Component {
   render() {
     return (
       <Center>
-      <Query query={ALL_ITEMS_QUERY}>
-        {({data, error, loading }) =>{
-          if(loading) return <p>Loding...</p>;
-          if(error) return <p>Error: {error.message}</p>;
-          return <ItemList>
-            {data.items.map(item =><Item item={item} key ={item.id}/>)}
-          </ItemList>
-        }}
-      </Query>
+        <Pagination page={this.props.page}/>
+          <Query query={ALL_ITEMS_QUERY}>
+            {({ data, error, loading }) => {
+              if (loading) return <p>Loding...</p>;
+              if (error) return <p>Error: {error.message}</p>;
+              return (
+                <ItemList>
+                  {data.items.map(item => (
+                    <Item item={item} key={item.id} />
+                  ))}
+                </ItemList>
+              );
+            }}
+          </Query>
+        <Pagination page={this.props.page}/>
       </Center>
-    )
+    );
   }
 }
 export default Items;
-export {ALL_ITEMS_QUERY};
+export { ALL_ITEMS_QUERY };
