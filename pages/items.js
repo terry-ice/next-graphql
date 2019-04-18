@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Items from "../components/items";
+import Items from "../components/Items";
 
 class Index extends Component {
   render() {

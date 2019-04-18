@@ -14,7 +14,6 @@ const PAGINATION_QUERY = gql`
 `;
 class Pagination extends Component {
   render() {
-    console.log(this.props,'ooo')
     return (
       <PaginationStyles>
         <Query query={PAGINATION_QUERY}>
