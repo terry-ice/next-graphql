@@ -9,7 +9,7 @@ type Mutation {
   ): Item!
   updateItem(id: ID!, description: String, price: Int, title: String): Item!
   deleteItem(id: ID!): Item
-   signup(email: String!, password: String!, name: String!): User!
+  signup(email: String!, password: String!, name: String!): User!
 }
 type Query {
   items: [Item]!
