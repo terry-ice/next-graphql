@@ -1,5 +1,5 @@
 # source: https://us1.prisma.sh/react/dev/dev
-# timestamp: Fri Apr 19 2019 00:28:09 GMT+0800 (中国标准时间)
+# timestamp: Sun Apr 21 2019 23:03:30 GMT+0800 (CST)
 
 type AggregateCartItem {
   count: Int!
@@ -208,7 +208,6 @@ type Item implements Node {
   image: String
   largeImage: String
   price: Int!
-  user: User!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -230,7 +229,6 @@ input ItemCreateInput {
   image: String
   largeImage: String
   price: Int!
-  user: UserCreateOneInput!
 }
 
 input ItemCreateOneInput {
@@ -322,7 +320,6 @@ input ItemUpdateDataInput {
   image: String
   largeImage: String
   price: Int
-  user: UserUpdateOneRequiredInput
 }
 
 input ItemUpdateInput {
@@ -331,7 +328,6 @@ input ItemUpdateInput {
   image: String
   largeImage: String
   price: Int
-  user: UserUpdateOneRequiredInput
 }
 
 input ItemUpdateManyMutationInput {
@@ -631,7 +627,6 @@ input ItemWhereInput {
 
   """All values greater than or equal the given value."""
   updatedAt_gte: DateTime
-  user: UserWhereInput
 }
 
 input ItemWhereUniqueInput {

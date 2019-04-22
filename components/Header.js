@@ -14,13 +14,13 @@ Router.onRouteChangeComplete = () => {
 Router.onRouteChangeError = () => {
   NProgress.done();
 };
-const Logo = styled.div`
+
+const Logo = styled.h1`
   font-size: 4rem;
   margin-left: 2rem;
   position: relative;
   z-index: 2;
   transform: skew(-7deg);
-  text-align: center;
   a {
     padding: 0.5rem 1rem;
     background: ${props => props.theme.red};
@@ -33,11 +33,13 @@ const Logo = styled.div`
     text-align: center;
   }
 `;
+
 const StyledHeader = styled.header`
   .bar {
     border-bottom: 10px solid ${props => props.theme.black};
     display: grid;
-    justify-content: center;
+    grid-template-columns: auto 1fr;
+    justify-content: space-between;
     align-items: stretch;
     @media (max-width: 1300px) {
       grid-template-columns: 1fr;
@@ -62,7 +64,6 @@ const Header = () => (
     </div>
     <div className="sub-bar">
       <p>Search</p>
-      <b>sfdf</b>
     </div>
   </StyledHeader>
 );
