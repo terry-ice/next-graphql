@@ -1,7 +1,13 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { randomBytes } = require("crypto");
+const { promisify } = require("util");
+const { transport, makeANiceEmail } = require("../mail");
 const Mutation = {
   createItem(parent, args, ctx, info) {
+    if(!ctx.request.userId){
+        throw new Error("必须登录之后才能操作");
+    }
     const item = ctx.db.mutation.createItem(
       {
         data: {
@@ -72,63 +78,77 @@ const Mutation = {
     // 2. Check if their password is correct
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-      throw new Error('Invalid Password!');
+      throw new Error("Invalid Password!");
     }
     // 3. generate the JWT Token
     const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
     // 4. Set the cookie with the token
-    ctx.response.cookie('token', token, {
+    ctx.response.cookie("token", token, {
       httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 365,
+      maxAge: 1000 * 60 * 60 * 24 * 365
     });
     // 5. Return the user
     return user;
   },
-//   async signin(parent, { email, password }, ctx, info) {
-//     console.log(email,'email11')
-//     console.log(password,'password11')
-//     const user = await ctx.db.query.user({ where: { email } });
-//     if (!user) {
-//       throw new Error(`no such user found for email${email}`);
-//     }
-//     const valid = await bcrypt.compare(password, user.password);
-//     console.log(valid);
-//     if (!valid) {
-//       throw new Error(`invalid password`);
-//     }
-//     const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
-//     // We set the jwt as a cookie on the response
-//     ctx.response.cookie("token", token, {
-//       httpOnly: true,
-//       maxAge: 1000 * 60 * 60 * 24 * 365 // 1 year cookie
-//     });
-//     return user;
-//   }
-  // async signup(parent,args,ctx,info){
-  //   args.email = args.email.toLowerCase();
-  //   args.password = 'qq1011';
+  signout(parent, args, ctx, info) {
+    ctx.response.clearCookie("token");
+    return { message: "退出成功" };
+  },
+  async requestReset(parent, args, ctx, info) {
+    const user = await ctx.db.query.user({ where: { email: args.email } });
+    if (!user) {
+      throw new Error("user不存在");
+    }
 
-  //   // hash('qq1011') = '123456';
-  //   const password = await bcrypt.hash(args.password,10);
-
-  //   const user = await ctx.db.mutation.createUser({
-  //     data:{
-  //       ...args,
-  //       password: password,
-  //       permissions: {set: ['USER']},
-
-  //     }
-  //   },info);
-  //   const token = jwt.sign({
-  //     userId: user.id
-  //   },process.env.APP_SECRET)
-  //   ctx.response.cookie('token', token,{
-  //     httpOnly: true,
-  //     maxAge: 1000*60*60*24*365
-  //   });
-  //   return user;
-
-  // }
+    const randomBytesPromiseified = promisify(randomBytes);
+    const resetToken = (await randomBytesPromiseified(20)).toString("hex");
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+    const res = await ctx.db.mutation.updateUser({
+      where: { email: args.email },
+      data: { resetToken, resetTokenExpiry }
+    });
+    const mailRes = await transport.sendMail({
+      from: "terryloveyan@mail.com",
+      to: "terryloveyan@mail.com",
+      subject: "你重置了密码",
+      html: makeANiceEmail(`请点击这里重置密码！
+        \n\n
+        <a href="${process.env.FRONTEND_URL}/reset?resetToken=${
+        resetToken
+      }">重置密码</a>
+        `)
+    });
+    return { message: "找回密码成功" };
+  },
+  async resetPassword(parent, args, ctx, info) {
+    if (args.password !== args.confirmPassword) {
+      throw new Error("密码错误");
+    }
+    console.log(args, "args");
+    const [user] = await ctx.db.query.users({
+      where: {
+        resetToken: args.resetToken
+      }
+    });
+    if (!user) {
+      throw new Error("token is error");
+    }
+    const password = await bcrypt.hash(args.password, 10);
+    const updatedUser = await ctx.db.mutation.updateUser({
+      where: { email: user.email },
+      data: {
+        password,
+        resetToken: null,
+        resetTokenExpiry: null
+      }
+    });
+    const token = jwt.sign({ userId: updatedUser.id }, process.env.APP_SECRET);
+    ctx.response.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 365
+    });
+    return updatedUser;
+  }
 };
 
 module.exports = Mutation;

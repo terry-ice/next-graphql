@@ -1,14 +1,10 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import CreateItem from "../components/CreateItem";
 
 class createItem extends Component {
   render() {
-    return (
-      <CreateItem>
-      </CreateItem>
-    );
+    return <CreateItem />;
   }
 }
-
 
 export default createItem;
