@@ -1,16 +1,16 @@
 import React, { Component } from "react";
-import CreateItem from "../components/CreateItem";
 import PleaseSignIn from "../components/PleaseSignIn";
-class Cell extends Component {
+import Permiss from "../components/Permissions";
+class Permissions extends Component {
   render() {
     return (
       <div>
         <PleaseSignIn>
-          <CreateItem />
+          <Permiss />
         </PleaseSignIn>
       </div>
     );
   }
 }
 
-export default Cell;
+export default Permissions;

@@ -1,5 +1,5 @@
 # source: https://us1.prisma.sh/react/dev/dev
-# timestamp: Sun Apr 21 2019 23:03:30 GMT+0800 (CST)
+# timestamp: Thu May 02 2019 12:51:28 GMT+0800 (CST)
 
 type AggregateCartItem {
   count: Int!
@@ -210,6 +210,7 @@ type Item implements Node {
   price: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  user: User!
 }
 
 """A connection to a list of items."""
@@ -229,6 +230,7 @@ input ItemCreateInput {
   image: String
   largeImage: String
   price: Int!
+  user: UserCreateOneInput!
 }
 
 input ItemCreateOneInput {
@@ -320,6 +322,7 @@ input ItemUpdateDataInput {
   image: String
   largeImage: String
   price: Int
+  user: UserUpdateOneRequiredInput
 }
 
 input ItemUpdateInput {
@@ -328,6 +331,7 @@ input ItemUpdateInput {
   image: String
   largeImage: String
   price: Int
+  user: UserUpdateOneRequiredInput
 }
 
 input ItemUpdateManyMutationInput {
@@ -627,6 +631,7 @@ input ItemWhereInput {
 
   """All values greater than or equal the given value."""
   updatedAt_gte: DateTime
+  user: UserWhereInput
 }
 
 input ItemWhereUniqueInput {
@@ -1666,6 +1671,15 @@ type PageInfo {
   endCursor: String
 }
 
+enum Permission {
+  ADMIN
+  USER
+  ITEMCREATE
+  ITEMUPDATE
+  ITEMDELETE
+  PERMISSIONUPDATE
+}
+
 type Query {
   cartItems(where: CartItemWhereInput, orderBy: CartItemOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [CartItem]!
   orders(where: OrderWhereInput, orderBy: OrderOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Order]!
@@ -1705,6 +1719,7 @@ type User implements Node {
   password: String!
   resetToken: String
   resetTokenExpiry: String
+  permissions: [Permission!]!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -1726,11 +1741,16 @@ input UserCreateInput {
   password: String!
   resetToken: String
   resetTokenExpiry: String
+  permissions: UserCreatepermissionsInput
 }
 
 input UserCreateOneInput {
   create: UserCreateInput
   connect: UserWhereUniqueInput
+}
+
+input UserCreatepermissionsInput {
+  set: [Permission!]
 }
 
 """An edge in a connection."""
@@ -1768,6 +1788,7 @@ type UserPreviousValues {
   password: String!
   resetToken: String
   resetTokenExpiry: String
+  permissions: [Permission!]!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -1817,6 +1838,7 @@ input UserUpdateDataInput {
   password: String
   resetToken: String
   resetTokenExpiry: String
+  permissions: UserUpdatepermissionsInput
 }
 
 input UserUpdateInput {
@@ -1825,6 +1847,7 @@ input UserUpdateInput {
   password: String
   resetToken: String
   resetTokenExpiry: String
+  permissions: UserUpdatepermissionsInput
 }
 
 input UserUpdateManyMutationInput {
@@ -1833,6 +1856,7 @@ input UserUpdateManyMutationInput {
   password: String
   resetToken: String
   resetTokenExpiry: String
+  permissions: UserUpdatepermissionsInput
 }
 
 input UserUpdateOneInput {
@@ -1849,6 +1873,10 @@ input UserUpdateOneRequiredInput {
   connect: UserWhereUniqueInput
   update: UserUpdateDataInput
   upsert: UserUpsertNestedInput
+}
+
+input UserUpdatepermissionsInput {
+  set: [Permission!]
 }
 
 input UserUpsertNestedInput {

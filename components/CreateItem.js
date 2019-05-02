@@ -4,6 +4,7 @@ import gql from "graphql-tag";
 import Form from "./styles/Form";
 import Router from "next/router";
 import formatMoney from "../lib/formatMoney";
+import Error from "./ErrorMessage";
 
 const CREATE_ITEM_MUTATION = gql`
   mutation CREATE_ITEM_MUTATION(
@@ -43,20 +44,23 @@ class CreateItem extends Component {
     console.log(name, type, value);
     this.setState({ [name]: val });
   }
-  async uploadFile(e){
-     const files = e.target.files;
-     const data = new FormData();
-     data.append('file', files[0]);
-     data.append('upload_preset','kebn1wg1');
-     console.log(data,'data')
-     const res = await fetch('https://api.cloudinary.com/v1_1/dohxs2duq/image/upload',{
-       method:'POST',
-       body: data,
-     });
-     const file = await res.json();
-     this.setState({
+  async uploadFile(e) {
+    const files = e.target.files;
+    const data = new FormData();
+    data.append("file", files[0]);
+    data.append("upload_preset", "kebn1wg1");
+    console.log(data, "data");
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dohxs2duq/image/upload",
+      {
+        method: "POST",
+        body: data
+      }
+    );
+    const file = await res.json();
+    this.setState({
       image: file.secure_url,
-      largeImage:file.url,
+      largeImage: file.url
     });
   }
   render() {
@@ -74,8 +78,9 @@ class CreateItem extends Component {
               });
             }}
           >
+            <Error error={error} />
             <fieldset disabled={loading} aria-busy={loading}>
-            <label htmlFor="file">
+              <label htmlFor="file">
                 image
                 <input
                   type="file"
@@ -86,7 +91,9 @@ class CreateItem extends Component {
                     this.uploadFile(e);
                   }}
                 />
-                {this.state.image && <img alt="img" width="200" src={this.state.image}/>}
+                {this.state.image && (
+                  <img alt="img" width="200" src={this.state.image} />
+                )}
               </label>
               <label htmlFor="title">
                 Title

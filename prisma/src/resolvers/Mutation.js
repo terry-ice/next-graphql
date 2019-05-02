@@ -3,20 +3,25 @@ const jwt = require("jsonwebtoken");
 const { randomBytes } = require("crypto");
 const { promisify } = require("util");
 const { transport, makeANiceEmail } = require("../mail");
+const { hasPermission } = require("../utils");
 const Mutation = {
   createItem(parent, args, ctx, info) {
-    if(!ctx.request.userId){
-        throw new Error("必须登录之后才能操作");
+    if (!ctx.request.userId) {
+      throw new Error("必须登录之后才能操作");
     }
     const item = ctx.db.mutation.createItem(
       {
         data: {
+          user: {
+            connect: {
+              id: ctx.request.userId
+            }
+          },
           ...args
         }
       },
       info
     );
-    console.log(item);
     return item;
   },
   updateItem(parent, args, ctx, info) {
@@ -33,6 +38,7 @@ const Mutation = {
     );
   },
   async deleteItem(parent, args, ctx, info) {
+
     const where = { id: args.id };
     const item = await ctx.db.query.item(
       { where },
@@ -53,7 +59,8 @@ const Mutation = {
       {
         data: {
           ...args,
-          password
+          password,
+          permissions: { set: ["USER"] }
         }
       },
       info
@@ -113,9 +120,9 @@ const Mutation = {
       subject: "你重置了密码",
       html: makeANiceEmail(`请点击这里重置密码！
         \n\n
-        <a href="${process.env.FRONTEND_URL}/reset?resetToken=${
-        resetToken
-      }">重置密码</a>
+        <a href="${
+          process.env.FRONTEND_URL
+        }/reset?resetToken=${resetToken}">重置密码</a>
         `)
     });
     return { message: "找回密码成功" };
@@ -148,7 +155,38 @@ const Mutation = {
       maxAge: 1000 * 60 * 60 * 24 * 365
     });
     return updatedUser;
-  }
+  },
+  async updatePermissions(parent, args, ctx, info) {
+    // 1. Check if they are logged in
+    if (!ctx.request.userId) {
+      throw new Error('You must be logged in!');
+    }
+    // 2. Query the current user
+    const currentUser = await ctx.db.query.user(
+      {
+        where: {
+          id: ctx.request.userId,
+        },
+      },
+      info
+    );
+    // 3. Check if they have permissions to do this
+    hasPermission(currentUser, ['ADMIN', 'PERMISSIONUPDATE']);
+    // 4. Update the permissions
+    return ctx.db.mutation.updateUser(
+      {
+        data: {
+          permissions: {
+            set: args.permissions,
+          },
+        },
+        where: {
+          id: args.userId,
+        },
+      },
+      info
+    );
+  },
 };
 
 module.exports = Mutation;
