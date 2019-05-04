@@ -6,6 +6,7 @@ import PriceTag from "./styles/PriceTag";
 import Link from "next/link";
 import formatMoney from "../lib/formatMoney";
 import DeleteItem from "./DeleteItem";
+import AddToCart from "./AddToCart";
 
 class Item extends Component {
   render() {
@@ -29,8 +30,8 @@ class Item extends Component {
           >
             <a>修改 🛠</a>
           </Link>
-          <button>add to cart🍅</button>
-          <DeleteItem id={item.id} >delete item</DeleteItem>
+          <AddToCart id={item.id}/>
+          <DeleteItem id={item.id}>delete item</DeleteItem>
         </div>
       </ItemStyles>
     );

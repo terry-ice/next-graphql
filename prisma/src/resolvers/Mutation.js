@@ -38,15 +38,22 @@ const Mutation = {
     );
   },
   async deleteItem(parent, args, ctx, info) {
-
     const where = { id: args.id };
     const item = await ctx.db.query.item(
       { where },
       `{
       id
       title
+      user {id }
     }`
     );
+    const ownItem = item.user.id === ctx.request.userId;
+    const hasPermission = ctx.request.user.permissions.some(i =>
+      ["ADMIN", "ITEMDELETE"].includes(i)
+    );
+    if (!ownItem && hasPermission) {
+      throw new Error("you don't have permission to do that!");
+    }
     return ctx.db.mutation.deleteItem({ where }, info);
   },
   async signup(parent, args, ctx, info) {
@@ -159,30 +166,90 @@ const Mutation = {
   async updatePermissions(parent, args, ctx, info) {
     // 1. Check if they are logged in
     if (!ctx.request.userId) {
-      throw new Error('You must be logged in!');
+      throw new Error("You must be logged in!");
     }
     // 2. Query the current user
     const currentUser = await ctx.db.query.user(
       {
         where: {
-          id: ctx.request.userId,
-        },
+          id: ctx.request.userId
+        }
       },
       info
     );
     // 3. Check if they have permissions to do this
-    hasPermission(currentUser, ['ADMIN', 'PERMISSIONUPDATE']);
+    hasPermission(currentUser, ["ADMIN", "PERMISSIONUPDATE"]);
     // 4. Update the permissions
     return ctx.db.mutation.updateUser(
       {
         data: {
           permissions: {
-            set: args.permissions,
-          },
+            set: args.permissions
+          }
         },
         where: {
-          id: args.userId,
+          id: args.userId
+        }
+      },
+      info
+    );
+  },
+  async addToCart(parent, args, ctx, info) {
+    const { userId } = ctx.request;
+    if (!userId) {
+      throw new Error("You must be signed in soooon");
+    }
+    const [existingCartItem] = await ctx.db.query.cartItems({
+      where: {
+        user: { id: userId },
+        item: { id: args.id }
+      }
+    });
+    if (existingCartItem) {
+      console.log("This item is already in their cart");
+      return ctx.db.mutation.updateCartItem(
+        {
+          where: { id: existingCartItem.id },
+          data: { quantity: existingCartItem.quantity + 1 }
         },
+        info
+      );
+    }
+    return ctx.db.mutation.createCartItem(
+      {
+        data: {
+          user: {
+            connect: { id: userId }
+          },
+          item: {
+            connect: { id: args.id }
+          }
+        }
+      },
+      info
+    );
+  },
+  async removeFromCart(parent, args, ctx, info) {
+    // 1. Find the cart item
+    const cartItem = await ctx.db.query.cartItem(
+      {
+        where: {
+          id: args.id,
+        },
+      },
+      `{ id, user { id }}`
+    );
+    console.log(cartItem)
+    // 1.5 Make sure we found an item
+    if (!cartItem) throw new Error('No CartItem Found!');
+    // 2. Make sure they own that cart item
+    if (cartItem.user.id !== ctx.request.userId) {
+      throw new Error('Cheatin huhhhh');
+    }
+    // 3. Delete that cart item
+    return ctx.db.mutation.deleteCartItem(
+      {
+        where: { id: args.id },
       },
       info
     );
